@@ -12,15 +12,18 @@ public class Server {
 	static int serverPort = 9975;
 
 	private int stageClients = 100;
+	
+	ArrayList<String> dosBlockedIPs;
+	
+	Hashtable<String, String> users;
+	
+	Hashtable<String, Integer> activeIPs;
+	
 
 	public Server() {
-		Hashtable<String, String> users = new Hashtable<String, String>();
-		Hashtable<String, Integer> activeIPs = new Hashtable<String, Integer>();
-		ArrayList<String> dosBlockedIPs = new ArrayList<String>();
-		long averageAtentionTime = (long) 0.0;
-		int numClientsQueue = 0;
-		int activeClients = 0;
-		long averageTimeQueue = (long) 0.0;
+		users = new Hashtable<String, String>();
+		activeIPs = new Hashtable<String, Integer>();
+		dosBlockedIPs = new ArrayList<String>();
 
 		users.put("emilnamen", hashlibMD5("emil"));
 		activeIPs.put("192.168.0.16", 0);
@@ -33,7 +36,54 @@ public class Server {
 
 				Socket connectionSocket = socket.accept();
 				socket.close();
-				long initialAttentionTime = System.currentTimeMillis();
+				
+				new Atendedor(connectionSocket).start();
+			}
+
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+
+			System.exit(1);
+		}
+	}
+
+	public static void main(String argv[]) {
+		new Server();
+	}
+
+	private String hashlibMD5(String param) {
+		byte[] bytesOfMessage;
+		try {
+			bytesOfMessage = param.getBytes("UTF-8");
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			byte[] thedigest = md.digest(bytesOfMessage);
+			String password = new String(thedigest);
+			return password;
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private class Atendedor extends Thread {
+		
+		Socket connectionSocket;
+		
+		public Atendedor(Socket cS) {
+			connectionSocket = cS;
+		}
+		
+		public void run() {
+			
+			double averageAtentionTime = 0.0;
+			int numClientsQueue = 0;
+			int activeClients = 0;
+			double averageTimeQueue = 0.0;
+			
+			try {
+				double initialAttentionTime = System.currentTimeMillis();
 				String activeIPAddress = connectionSocket.getRemoteSocketAddress().toString().split(":")[0].replace("/",
 						"");
 
@@ -75,33 +125,9 @@ public class Server {
 						System.out.println("Average Queue Time: " + averageTimeQueue);
 					}
 				}
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
-
-			System.exit(1);
 		}
 	}
-
-	public static void main(String argv[]) {
-		new Server();
-	}
-
-	private String hashlibMD5(String param) {
-		byte[] bytesOfMessage;
-		try {
-			bytesOfMessage = param.getBytes("UTF-8");
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			byte[] thedigest = md.digest(bytesOfMessage);
-			String password = new String(thedigest);
-			return password;
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 }
