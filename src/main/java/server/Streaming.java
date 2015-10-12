@@ -18,7 +18,7 @@ import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.mediatool.event.IVideoPictureEvent;
 import com.xuggle.xuggler.Global;
 
-public class Main extends MediaListenerAdapter {
+public class Streaming extends MediaListenerAdapter {
 
 	/**
 	 * The number of seconds between frames.
@@ -50,7 +50,7 @@ public class Main extends MediaListenerAdapter {
 
 	private JLabel jl;
 
-	public Main() {
+	public Streaming() {
 //		jf = new JFrame();
 //		jf.setSize(800, 600);
 //		jp = new JPanel();
@@ -135,10 +135,4 @@ public class Main extends MediaListenerAdapter {
 			e.printStackTrace();
 		}
 	}
-
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-		new Main();
-	}
-
 }
