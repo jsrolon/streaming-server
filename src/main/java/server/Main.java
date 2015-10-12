@@ -1,6 +1,11 @@
 package server;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.ByteArrayInputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -46,13 +51,13 @@ public class Main extends MediaListenerAdapter {
 	private JLabel jl;
 
 	public Main() {
-		jf = new JFrame();
-		jf.setSize(800, 600);
-		jp = new JPanel();
-		jl = new JLabel();
-		jp.add(jl);
-		jf.add(jp);
-		jf.setVisible(true);
+//		jf = new JFrame();
+//		jf.setSize(800, 600);
+//		jp = new JPanel();
+//		jl = new JLabel();
+//		jp.add(jl);
+//		jf.add(jp);
+//		jf.setVisible(true);
 
 		// create a media reader for processing video
 
@@ -100,10 +105,31 @@ public class Main extends MediaListenerAdapter {
 
 			// if it's time to write the next frame
 			if (event.getTimeStamp() - mLastPtsWrite >= MICRO_SECONDS_BETWEEN_FRAMES) {
-				jl.setIcon(new ImageIcon(event.getImage()));
+				InetAddress IPAddress = InetAddress.getByName("192.168.1.146");
+				
+				// get the bytes of the bufferedimage
+				BufferedImage bi = event.getImage();
+				System.out.println(event.getImage().getWidth() + " " + event.getImage().getHeight());
+				byte[] bytes = ((DataBufferByte) bi.getData().getDataBuffer()).getData();
+				
+				
+				// read each segment and send
+				ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+				byte[] seg = new byte[58880];
+				for(int i = 0; i < 12; i++) {
+					DatagramSocket dgs = new DatagramSocket();
+					bais.read(seg, 0, 58880);
+					DatagramPacket p = new DatagramPacket(seg, seg.length, IPAddress, 1337);
+					dgs.send(p);
+					System.out.println("sent " + seg[0]);
+					dgs.close();
+					Thread.sleep(3);
+				}
 
 				// update last write time
 				mLastPtsWrite += MICRO_SECONDS_BETWEEN_FRAMES;
+				
+				Thread.sleep(8);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
